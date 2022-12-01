@@ -1,5 +1,4 @@
-use crate::{DateTime, SquirePool};
-use anyhow::Result;
+use crate::{DateTime, Error, SquirePool};
 use sqlx::types::Uuid;
 
 /// Representation of a city
@@ -15,7 +14,12 @@ pub struct City {
 }
 
 impl City {
-    pub async fn insert(pool: &SquirePool, user: &Uuid, city: &str, country: &str) -> Result<Self> {
+    pub async fn insert(
+        pool: &SquirePool,
+        user: &Uuid,
+        city: &str,
+        country: &str,
+    ) -> Result<Self, Error> {
         sqlx::query_as!(
             City,
             // language=PostgreSQL
@@ -28,18 +32,19 @@ impl City {
             city,
             country
         )
-        .fetch_one(&*pool.pool)
+        .fetch_one(pool.pool)
         .await
+        .map_err(Error::from)
     }
 
-    pub async fn get(pool: &SquirePool, user: &Uuid) -> Result<Vec<Self>> {
+    pub async fn get(pool: &SquirePool, user: &Uuid) -> Result<Vec<Self>, Error> {
         sqlx::query_as!(
             City,
             r#"select id, user, city, country, created_at, updated_at, deleted_at from squire.city where user = $1 and deleted_at is null"#,
             user
         )
-        .fetch(&*pool.pool)
-        .await
+        .fetch(pool.pool)
+        .await.map_err(Error::from)
     }
 }
 

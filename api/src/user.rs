@@ -78,3 +78,15 @@ impl UserAuth {
         ))
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[tokio::test]
+    async fn shuold_create_user() {
+        let client = TestClient::new(app);
+        let res = client.get("/v1/user").post().await;
+        assert_eq!(res.status(), StatusCode::OK);
+    }
+}
