@@ -1,7 +1,10 @@
+use std::any::Any;
+
 use axum::{Extension, Json, Router};
 
 use axum::routing::get;
 
+use db::SquirePool;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
@@ -28,13 +31,13 @@ struct CreateCity {
 }
 
 async fn create_city(
-    db: Extension<PgPool>,
+    db: Extension<SquirePool>,
     Json(req): Json<CreateCity>,
 ) -> Result<Json<City>, Error> {
     req.validate()?;
-    let user_id = req.auth.verify(&*db).await?;
+    let user = req.auth.verify(&*db).await?;
 
-    db::City::insert(db, user.id, &req.city, &req.country).await?;
+    db::City::insert(&db, user.id, &req.city, &req.country).await?;
 }
 
 /// Representation of a city
@@ -56,7 +59,6 @@ impl From<db::City> for City {
     fn from(v: db::City) -> Self {
         City {
             id: v.id,
-            user: v.user,
             city: v.city,
             country: v.country,
             created_at: v.created_at,
@@ -66,21 +68,16 @@ impl From<db::City> for City {
 }
 
 /// Returns posts in descending chronological order.
-async fn get_cities(db: Extension<PgPool>) -> Result<Json<Vec<City>>> {
+async fn get_cities(
+    db: Extension<SquirePool>,
+    Json(req): Json<UserAuth>,
+) -> Result<Json<Vec<City>>> {
+    let user = req.verify(&*db).await?;
+
     // Note: normally you'd want to put a `LIMIT` on this as well,
     // though that would also necessitate implementing pagination.
-    let posts = sqlx::query_as!(
-        Post,
-        // language=PostgreSQL
-        r#"
-            select post_id, username, content, created_at
-            from post
-            inner join "user" using (user_id)
-            order by created_at desc
-        "#
-    )
-    .fetch_all(&*db)
-    .await?;
+    let cities = db::City::get(&db, &user.id).await?;
+    let cities: Vec<_> = cities.into_iter().map(City::from).collect();
 
-    Ok(Json(posts))
+    Ok(Json(cities))
 }

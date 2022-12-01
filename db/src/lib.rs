@@ -15,7 +15,8 @@ pub type DateTime = time::OffsetDateTime;
 
 /// Database pool
 pub struct SquirePool {
-    pool: PgPool,
+    //TODO implement deref
+    pub(crate) pool: PgPool,
 }
 
 impl SquirePool {

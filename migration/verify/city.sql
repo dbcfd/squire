@@ -3,7 +3,7 @@
 BEGIN;
 
 SELECT id, user, city, country, created_at, updated_at, deleted_at
-  FROM squire.user
+  FROM squire.city
  WHERE FALSE;
 
 

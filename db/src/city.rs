@@ -1,9 +1,9 @@
 use crate::{DateTime, SquirePool};
 use anyhow::Result;
-use sqlx::{types::Uuid, FromRow};
+use sqlx::types::Uuid;
 
 /// Representation of a city
-#[sqlx::FromRow]
+#[derive(sqlx::FromRow)]
 pub struct City {
     id: Uuid,
     user: Uuid,
@@ -20,20 +20,25 @@ impl City {
             City,
             // language=PostgreSQL
             r#"
-                with inserted_city as (
-                    insert into city(user, city, country)
-                    values ($1, $2, $3)
-                    returning id, user, city, country, created_at, updated_at, deleted_at
-                )
-                select id, user, city, country, created_at, updated_at, deleted_at
-                from inserted_city
-                inner join "city" using (id)
+                insert into squire.city(user, city, country)
+                values ($1, $2, $3)
+                returning id, user, city, country, created_at, updated_at, deleted_at
             "#,
             user,
             city,
             country
         )
-        .fetch_one(&*pool)
+        .fetch_one(&*pool.pool)
+        .await
+    }
+
+    pub async fn get(pool: &SquirePool, user: &Uuid) -> Result<Vec<Self>> {
+        sqlx::query_as!(
+            City,
+            r#"select id, user, city, country, created_at, updated_at, deleted_at from squire.city where user = $1 and deleted_at is null"#,
+            user
+        )
+        .fetch(&*pool.pool)
         .await
     }
 }

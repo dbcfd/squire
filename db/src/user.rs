@@ -3,7 +3,7 @@ use anyhow::Result;
 use sqlx::types::Uuid;
 
 /// Representation of a user
-#[sqlx::FromRow]
+#[derive(sqlx::FromRow)]
 pub struct User {
     id: Uuid,
     email: String,
@@ -25,29 +25,25 @@ impl User {
             User,
             // language=PostgreSQL
             r#"
-                with inserted_user as (
-                    insert into user(email, name, hashed_password)
-                    values ($1, $2, $3)
-                    returning id, email, hashed_password, created_at, updated_at, deleted_at
-                )
-                select id, email, hashed_password, salt, created_at, updated_at, deleted_at
-                from inserted_user
-                inner join "user" using (id)
+                insert into squire.user(email, name, hashed_password)
+                values ($1, $2, $3)
+                returning id, email, hashed_password, created_at, updated_at, deleted_at
             "#,
             email,
             name,
             hashed_password,
         )
-        .fetch_one(&*pool)
+        .fetch_one(&*pool.pool)
         .await?
     }
 
     pub async fn get(pool: &SquirePool, email: &str) -> Result<Option<Self>> {
-        sqlx::query!(
-            r#"select id, email, name, hashed_password from "user" where email = $1 and deleted_at is null"#,
+        sqlx::query_as!(
+            User,
+            r#"select id, email, name, hashed_password, created_at, updated_at, deleted_at from squire.user where email = $1 and deleted_at is null"#,
             email
         )
-        .fetch_optional(&*pool)
+        .fetch_optional(&*pool.pool)
         .await
     }
 }
