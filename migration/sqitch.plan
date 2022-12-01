@@ -1,0 +1,6 @@
+%syntax-version=1.0.0
+%project=squire
+
+squire 2022-12-01T20:05:49Z Danny Browning <bdbro@DESKTOP-E3IJUSM> # Schema for all squire objects
+user [squire] 2022-12-01T20:07:00Z Danny Browning <bdbro@DESKTOP-E3IJUSM> # Table to track users
+city [user] 2022-12-01T20:07:14Z Danny Browning <bdbro@DESKTOP-E3IJUSM> # Table to track cities

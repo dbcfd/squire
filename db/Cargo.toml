@@ -1,0 +1,17 @@
+[package]
+name = "db"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+anyhow = "1"
+argon2 = "0.4"
+chrono = "0.4"
+sqlx = { version = "0.6", features = [ "chrono", "runtime-tokio-native-tls" , "postgres", "uuid" ] }
+thiserror = "1"
+tracing = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["macros", "rt-multi-thread"]}
