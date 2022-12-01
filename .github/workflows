@@ -40,8 +40,7 @@ jobs:
         working-directory:
         run: sqitch deploy db:pg:squire
         env:
-          POSTGRES_HOST: postgres
-          POSTGRES_PORT: 5432
+          DATABASE_URL: postgresql://squireuser:password@postgres:5432/squire
   
   build:
     runs-on: ubuntu-latest
@@ -54,6 +53,8 @@ jobs:
       
       - name: Build
         run: cargo build
+        env:
+          DATABASE_URL: postgresql://squireuser:password@postgres:5432/squire
 
   test:
     runs-on: ubuntu-latest
@@ -66,6 +67,8 @@ jobs:
       
       - name: Test
         run: cargo test
+        env:
+          DATABASE_URL: postgresql://squireuser:password@postgres:5432/squire
 
       
 

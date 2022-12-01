@@ -8,12 +8,12 @@ API demonstrating users and favorite cities
 * Setup the database
 
     sudo -u postgres psql -c "CREATE ROLE squireuser WITH LOGIN SUPERUSER PASSWORD 'password';"
-    createdb -h postgres -p 5432 -U squireuser squire
+    createdb -h localhost -p 5432 -U squireuser squire
 
 * Install [sqitch](https://sqitch.org/download/)
 * Run migrations
 
-    sqitch deploy db:pg:squire
+    sqitch deploy local
 
 * Build the application
 

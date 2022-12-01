@@ -2,7 +2,7 @@ use crate::{DateTime, SquirePool};
 use anyhow::Result;
 use sqlx::{types::Uuid, FromRow};
 
-/// Representation of a user
+/// Representation of a city
 #[sqlx::FromRow]
 pub struct City {
     id: Uuid,
@@ -29,9 +29,9 @@ impl City {
                 from inserted_city
                 inner join "city" using (id)
             "#,
-            email,
-            hashed_password,
-            salt
+            user,
+            city,
+            country
         )
         .fetch_one(&*pool)
         .await
@@ -46,7 +46,12 @@ mod tests {
     async fn should_insert_city() {
         let pool = SquirePool::new().await.unwrap();
 
-        let user = User::insert(&pool, "insert_city@test.com", "hashed_password", "salt").await?;
-        assert_eq!(user.email, "insert_city@test.com");
+        let user = User::insert(&pool, "insert_user@test.com", "hashed_password")
+            .await
+            .unwrap();
+        assert_eq!(user.email, "insert_user@test.com");
+
+        let city = City::insert(&pool, user.id, "some_town", "some_country").await?;
+        assert_eq!(city.user, user.id);
     }
 }

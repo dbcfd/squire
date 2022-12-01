@@ -8,8 +8,8 @@ edition = "2021"
 [dependencies]
 anyhow = "1"
 argon2 = "0.4"
-chrono = "0.4"
-sqlx = { version = "0.6", features = [ "chrono", "runtime-tokio-native-tls" , "postgres", "uuid" ] }
+time = "0.3"
+sqlx = { version = "0.6", features = [ "runtime-tokio-native-tls" , "postgres", "time", "uuid" ] }
 thiserror = "1"
 tracing = "0.1"
 

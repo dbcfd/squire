@@ -1,14 +1,17 @@
 mod city;
+mod error;
 mod user;
 
 use anyhow::Result;
-use sqlx::{PgPool, PgPoolOptions};
+use sqlx::{postgres::PgPoolOptions, PgPool};
 
 pub use city::City;
+pub use error::Error;
+pub use sqlx::types::Uuid;
 pub use user::User;
 
 /// Alias chrono type to a simpler type
-pub type DateTime = chrono::DateTime<chrono::Utc>;
+pub type DateTime = time::OffsetDateTime;
 
 /// Database pool
 pub struct SquirePool {
@@ -17,23 +20,12 @@ pub struct SquirePool {
 
 impl SquirePool {
     /// Create a new database pool
-    pub async fn new() -> Result<Self> {
-        let addr = std::env::var("POSTGRES_HOST").unwrap_or_else(|| "localhost".to_string());
+    pub async fn new() -> Result<Self, Error> {
+        let addr = std::env::var("POSTGRES_HOST").unwrap_or_else(|_| "localhost".to_string());
         let pool = PgPoolOptions::new()
             .max_connections(5)
-            .connect(format!("postgres://squireuser:password@{}/squire", addr))
+            .connect(&format!("postgres://squireuser:password@{}/squire", addr))
             .await?;
-        OK(Self { pool: pool })
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
+        Ok(Self { pool: pool })
     }
 }
