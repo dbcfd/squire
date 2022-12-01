@@ -1,5 +1,3 @@
-use std::any::Any;
-
 use axum::{Extension, Json, Router};
 
 use axum::routing::get;

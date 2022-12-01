@@ -1,5 +1,4 @@
-use crate::{DateTime, SquirePool};
-use anyhow::Result;
+use crate::{DateTime, Error, SquirePool};
 use sqlx::types::Uuid;
 
 /// Representation of a user
@@ -20,31 +19,32 @@ impl User {
         email: &str,
         name: &str,
         hashed_password: &str,
-    ) -> Result<Self> {
-        sqlx::query_as!(
+    ) -> Result<Self, Error> {
+        let res = sqlx::query_as!(
             User,
             // language=PostgreSQL
             r#"
                 insert into squire.user(email, name, hashed_password)
                 values ($1, $2, $3)
-                returning id, email, hashed_password, created_at, updated_at, deleted_at
+                returning id, email, name, hashed_password, created_at, updated_at, deleted_at
             "#,
             email,
             name,
             hashed_password,
         )
-        .fetch_one(&*pool.pool)
-        .await?
+        .fetch_one(&pool.pool)
+        .await?;
+        Ok(res)
     }
 
-    pub async fn get(pool: &SquirePool, email: &str) -> Result<Option<Self>> {
+    pub async fn get(pool: &SquirePool, email: &str) -> Result<Option<Self>, Error> {
         sqlx::query_as!(
             User,
             r#"select id, email, name, hashed_password, created_at, updated_at, deleted_at from squire.user where email = $1 and deleted_at is null"#,
             email
         )
-        .fetch_optional(&*pool.pool)
-        .await
+        .fetch_optional(&pool.pool)
+        .await.map_err(Error::from)
     }
 }
 
