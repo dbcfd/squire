@@ -1,0 +1,74 @@
+name: PostgreSQL service example
+on: push
+
+jobs:
+  # Label of the container job
+  migration:
+    # Containers must run in Linux based operating systems
+    runs-on: ubuntu-latest
+    # Docker Hub image that `container-job` executes in
+    container: sqitch/sqitch
+
+    # Service containers to run with `container-job`
+    services:
+      # Label used to access the service container
+      postgres:
+        # Docker Hub image
+        image: postgres
+        # Provide the password for postgres
+        env:
+          POSTGRES_PASSWORD: postgres
+        # Set health checks to wait until postgres has started
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      # Downloads a copy of the code in your repository before running CI tests
+      - name: Check out repository code
+        uses: actions/checkout@v3
+
+      - name: Create our user
+        run: sudo -u postgres psql -c "CREATE ROLE squireuser WITH LOGIN SUPERUSER PASSWORD 'password';"
+
+      - name: Create our database
+        run: createdb -h postgres -p 5432 -U squireuser squire
+
+      - name: Run sqitch migration
+        working-directory:
+        run: sqitch deploy db:pg:squire
+        env:
+          DATABASE_URL: postgresql://squireuser:password@postgres:5432/squire
+  
+  build:
+    runs-on: ubuntu-latest
+    container: 1.65-slim-buster
+    needs: migration
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      
+      - name: Build
+        run: cargo build
+        env:
+          DATABASE_URL: postgresql://squireuser:password@postgres:5432/squire
+
+  test:
+    runs-on: ubuntu-latest
+    container: 1.65-slim-buster
+    needs: build
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v3
+      
+      - name: Test
+        run: cargo test
+        env:
+          DATABASE_URL: postgresql://squireuser:password@postgres:5432/squire
+
+      
+
