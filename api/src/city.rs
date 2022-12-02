@@ -1,14 +1,14 @@
 use axum::{Extension, Json, Router};
 
 use axum::routing::get;
+use axum_auth::AuthBasic;
 
 use db::SquirePool;
 use serde::{Deserialize, Serialize};
 use time::OffsetDateTime;
 
-use crate::user::UserAuth;
-use crate::Error;
-use sqlx::PgPool;
+use crate::auth::UserAuth;
+use crate::{Error, Result};
 use validator::Validate;
 
 use time::format_description::well_known::Rfc3339;
@@ -21,7 +21,6 @@ pub fn router() -> Router {
 #[derive(Deserialize, Validate)]
 #[serde(rename_all = "camelCase")]
 struct CreateCity {
-    auth: UserAuth,
     #[validate(length(min = 1, max = 1000))]
     city: String,
     #[validate(length(min = 1, max = 1000))]
@@ -30,12 +29,16 @@ struct CreateCity {
 
 async fn create_city(
     db: Extension<SquirePool>,
+    AuthBasic((id, password)): AuthBasic,
     Json(req): Json<CreateCity>,
-) -> Result<Json<City>, Error> {
+) -> Result<Json<City>> {
     req.validate()?;
-    let user = req.auth.verify(&*db).await?;
+    let password = password.ok_or_else(|_| Error::Auth)?;
+    let user = UserAuth { email: id, password: password }.verify(&*db).await?;
 
-    db::City::insert(&db, user.id, &req.city, &req.country).await?;
+    db::City::insert(&db, &user.id, &req.city, &req.country).await?;
+
+    Ok(StatusCode::NO_CONTENT)
 }
 
 /// Representation of a city
@@ -68,9 +71,10 @@ impl From<db::City> for City {
 /// Returns posts in descending chronological order.
 async fn get_cities(
     db: Extension<SquirePool>,
-    Json(req): Json<UserAuth>,
+    AuthBasic((id, password)): AuthBasic,
 ) -> Result<Json<Vec<City>>> {
-    let user = req.verify(&*db).await?;
+    let password = password.ok_or_else(|_| Error::Auth)?;
+    let user = UserAuth { email: id, password: password }.verify(&*db).await?;
 
     // Note: normally you'd want to put a `LIMIT` on this as well,
     // though that would also necessitate implementing pagination.

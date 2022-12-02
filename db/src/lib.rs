@@ -14,6 +14,7 @@ pub use user::User;
 pub type DateTime = time::OffsetDateTime;
 
 /// Database pool
+#[derive(Clone)]
 pub struct SquirePool {
     //TODO implement deref
     pub(crate) pool: PgPool,

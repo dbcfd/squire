@@ -7,7 +7,6 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1"
-argon2 = "0.4"
 time = "0.3"
 sqlx = { version = "0.6", features = [ "runtime-tokio-native-tls" , "postgres", "time", "uuid" ] }
 thiserror = "1"

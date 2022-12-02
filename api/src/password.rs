@@ -1,12 +1,11 @@
-use anyhow::{anyhow, Context};
-use tokio::task;
+use anyhow::anyhow;
 
 use argon2::password_hash::SaltString;
 use argon2::{password_hash, Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 
 pub struct Password(String);
 
-impl RawPassword {
+impl Password {
     pub fn hash(&self) -> anyhow::Result<String> {
         let salt = SaltString::generate(rand::thread_rng());
         Ok(Argon2::default()
@@ -19,7 +18,7 @@ impl RawPassword {
         let hash = PasswordHash::new(&user.hashed_password)
             .map_err(|e| anyhow!(e).context("BUG: password hash invalid"))?;
 
-        let res = Argon2::default().verify_password(self.0.as_bytes(), &user.hashed_password);
+        let res = Argon2::default().verify_password(self.0.as_bytes(), &hash);
 
         match res {
             Ok(()) => Ok(true),

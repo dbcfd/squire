@@ -1,0 +1,5 @@
+{
+    "rust-analyzer.cargo.extraEnv": {
+        "DATABASE_URL": "postgresql://squireuser:password@localhost:5432/squire"
+    }
+}

@@ -4,13 +4,13 @@ use sqlx::types::Uuid;
 /// Representation of a user
 #[derive(sqlx::FromRow)]
 pub struct User {
-    id: Uuid,
-    email: String,
-    name: String,
-    hashed_password: String,
-    created_at: DateTime,
-    updated_at: DateTime,
-    deleted_at: Option<DateTime>,
+    pub id: Uuid,
+    pub email: String,
+    pub name: String,
+    pub hashed_password: String,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
+    pub deleted_at: Option<DateTime>,
 }
 
 impl User {
@@ -38,13 +38,14 @@ impl User {
     }
 
     pub async fn get(pool: &SquirePool, email: &str) -> Result<Option<Self>, Error> {
-        sqlx::query_as!(
+        let res = sqlx::query_as!(
             User,
             r#"select id, email, name, hashed_password, created_at, updated_at, deleted_at from squire.user where email = $1 and deleted_at is null"#,
             email
         )
         .fetch_optional(&pool.pool)
-        .await.map_err(Error::from)
+        .await?;
+        Ok(res)
     }
 }
 
@@ -56,7 +57,7 @@ mod tests {
     async fn should_insert_user() {
         let pool = SquirePool::new().await.unwrap();
 
-        let user = User::insert(&pool, "insert_user@test.com", "hashed_password")
+        let user = User::insert(&pool, "insert_user@test.com", "some name", "hashed_password")
             .await
             .unwrap();
         assert_eq!(user.email, "insert_user@test.com");

@@ -27,6 +27,9 @@ pub enum Error {
 
     #[error("{0}")]
     Conflict(String),
+
+    #[error("Auth")]
+    Auth,
 }
 
 impl IntoResponse for Error {

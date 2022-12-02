@@ -1,3 +1,4 @@
+mod auth;
 mod city;
 mod error;
 mod password;
@@ -5,6 +6,10 @@ mod user;
 
 pub use db::SquirePool;
 pub use error::Error;
+pub type Result<T, E = Error> = ::std::result::Result<T, E>;
+
+use anyhow::Context;
+use axum::{Extension, Router};
 
 pub fn app(db: SquirePool) -> Router {
     Router::new()
