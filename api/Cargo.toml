@@ -8,7 +8,7 @@ edition = "2021"
 [dependencies]
 anyhow = "1"
 axum = { version = "0.6", features = ["macros"] }
-axum-auth = "0.3"
+axum-auth = "0.4"
 argon2 = "0.4"
 db = { path = "../db" }
 once_cell = "1.13"

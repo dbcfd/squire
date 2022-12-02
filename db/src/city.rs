@@ -22,11 +22,8 @@ impl City {
     ) -> Result<Self, Error> {
         // let res = sqlx::query_as!(
         //     City,
-        //     // language=PostgreSQL
         //     r#"
-        //         insert into squire.city(user, city, country)
-        //         values ($1, $2, $3)
-        //         returning id, user, city, country, created_at, updated_at, deleted_at
+        //         insert into city(user, city, country) values ($1, $2, $3) returning id, user, city, country, created_at, updated_at, deleted_at
         //     "#,
         //     user,
         //     city,
@@ -60,12 +57,19 @@ mod tests {
     async fn should_insert_city() {
         let pool = SquirePool::new().await.unwrap();
 
-        let user = User::insert(&pool, "insert_user@test.com", "some user", "hashed_password")
-            .await
-            .unwrap();
+        let user = User::insert(
+            &pool,
+            "insert_user@test.com",
+            "some user",
+            "hashed_password",
+        )
+        .await
+        .unwrap();
         assert_eq!(user.email, "insert_user@test.com");
 
-        let city = City::insert(&pool, &user.id, "some_town", "some_country").await.unwrap();
+        let city = City::insert(&pool, &user.id, "some_town", "some_country")
+            .await
+            .unwrap();
         assert_eq!(city.user, user.id);
     }
 }

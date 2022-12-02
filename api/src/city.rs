@@ -1,11 +1,11 @@
+use axum::http::StatusCode;
 use axum::{Extension, Json, Router};
 
 use axum::routing::get;
 use axum_auth::AuthBasic;
 
-use db::SquirePool;
+use db::{DateTime, SquirePool};
 use serde::{Deserialize, Serialize};
-use time::OffsetDateTime;
 
 use crate::auth::UserAuth;
 use crate::{Error, Result};
@@ -31,10 +31,15 @@ async fn create_city(
     db: Extension<SquirePool>,
     AuthBasic((id, password)): AuthBasic,
     Json(req): Json<CreateCity>,
-) -> Result<Json<City>> {
+) -> Result<StatusCode> {
     req.validate()?;
-    let password = password.ok_or_else(|_| Error::Auth)?;
-    let user = UserAuth { email: id, password: password }.verify(&*db).await?;
+    let password = password.ok_or_else(|| Error::Auth)?;
+    let user = UserAuth {
+        email: id,
+        password: password,
+    }
+    .verify(&*db)
+    .await?;
 
     db::City::insert(&db, &user.id, &req.city, &req.country).await?;
 
@@ -73,8 +78,13 @@ async fn get_cities(
     db: Extension<SquirePool>,
     AuthBasic((id, password)): AuthBasic,
 ) -> Result<Json<Vec<City>>> {
-    let password = password.ok_or_else(|_| Error::Auth)?;
-    let user = UserAuth { email: id, password: password }.verify(&*db).await?;
+    let password = password.ok_or_else(|| Error::Auth)?;
+    let user = UserAuth {
+        email: id,
+        password: password,
+    }
+    .verify(&*db)
+    .await?;
 
     // Note: normally you'd want to put a `LIMIT` on this as well,
     // though that would also necessitate implementing pagination.

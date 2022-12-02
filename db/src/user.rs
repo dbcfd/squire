@@ -57,9 +57,14 @@ mod tests {
     async fn should_insert_user() {
         let pool = SquirePool::new().await.unwrap();
 
-        let user = User::insert(&pool, "insert_user@test.com", "some name", "hashed_password")
-            .await
-            .unwrap();
+        let user = User::insert(
+            &pool,
+            "insert_user@test.com",
+            "some name",
+            "hashed_password",
+        )
+        .await
+        .unwrap();
         assert_eq!(user.email, "insert_user@test.com");
 
         let user = User::get(&pool, "insert_user@test.com").await.unwrap();

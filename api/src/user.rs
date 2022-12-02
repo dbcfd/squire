@@ -5,13 +5,10 @@ use regex::Regex;
 
 use db::SquirePool;
 use serde::Deserialize;
-use uuid::Uuid;
 use validator::Validate;
 
-use crate::{Error, Result};
 use crate::password::Password;
-
-pub type UserId = Uuid;
+use crate::{Error, Result};
 
 pub fn router() -> Router {
     Router::new().route("/v1/user", post(create_user))
@@ -46,11 +43,12 @@ async fn create_user(db: Extension<SquirePool>, Json(req): Json<UserCreate>) -> 
 
     db::User::insert(&db, &email, &name, &hashed_password)
         .await
-        .map_err(|e| match e {
-            db::Error(sqlx::Error::Database(dbe)) if dbe.constraint() == Some("user_email_key") => {
+        .map_err(|e| {
+            if e.constraint_error() {
                 Error::Conflict("email taken".into())
+            } else {
+                e.into()
             }
-            _ => e.into(),
         })?;
 
     Ok(StatusCode::NO_CONTENT)
@@ -59,11 +57,16 @@ async fn create_user(db: Extension<SquirePool>, Json(req): Json<UserCreate>) -> 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use axum_test_helper::TestClient;
 
     #[tokio::test]
-    async fn shuold_create_user() {
+    async fn should_create_user() {
         let client = TestClient::new(router());
-        let res = client.get("/v1/user").post().await;
+        let res = client
+            .post("/v1/user")
+            .body(r#"{"email":"should_create_user@test.com","password":"pwd"}"#)
+            .send()
+            .await;
         assert_eq!(res.status(), StatusCode::OK);
     }
 }

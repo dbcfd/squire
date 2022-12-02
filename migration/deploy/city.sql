@@ -4,7 +4,7 @@
 BEGIN;
 
 CREATE TABLE "squire"."city" (
-  "id" uuid PRIMARY KEY default gen_random_uuid(),
+  "id" uuid PRIMARY KEY NOT NULL default gen_random_uuid(),
   "user" uuid NOT NULL,
   "city" varchar NOT NULL,
   "country" varchar NOT NULL,

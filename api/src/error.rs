@@ -70,9 +70,10 @@ impl Error {
         use Error::*;
 
         match self {
-            Sqlx(_) | Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
+            Db(_) | Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
             InvalidEntity(_) | UnprocessableEntity(_) => StatusCode::UNPROCESSABLE_ENTITY,
             Conflict(_) => StatusCode::CONFLICT,
+            Auth => StatusCode::UNAUTHORIZED,
         }
     }
 }

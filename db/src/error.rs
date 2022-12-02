@@ -12,3 +12,15 @@ pub enum Error {
     #[error("an internal server error occurred")]
     Anyhow(#[from] anyhow::Error),
 }
+
+impl Error {
+    pub fn constraint_error(&self) -> bool {
+        if let Error::Sqlx(sqlx::Error::Database(e)) = self {
+            e.constraint()
+                .map(|s| s.contains("key"))
+                .unwrap_or_else(|| false)
+        } else {
+            false
+        }
+    }
+}

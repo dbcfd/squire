@@ -4,3 +4,6 @@ members = [
   "api",
   "application"
 ]
+
+[patch.crates-io]
+axum-auth = { git = "https://github.com/Owez/axum-auth.git", ref = "ef315577b0f0ce0dac3fca0bbc96df7556a9efd3" }

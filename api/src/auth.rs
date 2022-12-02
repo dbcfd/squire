@@ -1,11 +1,11 @@
+use crate::{password::Password, Error, Result};
 use db::{SquirePool, User};
-use crate::{Error, password::Password, Result};
-use std::time::Duration;
 use rand::Rng;
+use std::time::Duration;
 
 pub struct UserAuth {
-    email: String,
-    password: String,
+    pub email: String,
+    pub password: String,
 }
 
 impl UserAuth {
@@ -21,8 +21,6 @@ impl UserAuth {
             tokio::time::sleep(sleep_duration).await;
         }
 
-        Err(Error::UnprocessableEntity(
-            "invalid email/password".into(),
-        ))
+        Err(Error::UnprocessableEntity("invalid email/password".into()))
     }
 }
