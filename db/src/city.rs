@@ -20,31 +20,29 @@ impl City {
         city: &str,
         country: &str,
     ) -> Result<Self, Error> {
-        // let res = sqlx::query_as!(
-        //     City,
-        //     r#"
-        //         insert into city(user, city, country) values ($1, $2, $3) returning id, user, city, country, created_at, updated_at, deleted_at
-        //     "#,
-        //     user,
-        //     city,
-        //     country
-        // )
-        // .fetch_one(&pool.pool)
-        // .await?;
-        // Ok(res)
-        unimplemented!("bleh")
+        let res = sqlx::query_as!(
+            City,
+            r#"
+                insert into squire.city("user", city, country) values ($1, $2, $3) returning id, "user", city, country, created_at, updated_at, deleted_at
+            "#,
+            user,
+            city,
+            country
+        )
+        .fetch_one(&pool.pool)
+        .await?;
+        Ok(res)
     }
 
     pub async fn get(pool: &SquirePool, user: &Uuid) -> Result<Vec<Self>, Error> {
-        // let res = sqlx::query_as!(
-        //     City,
-        //     r#"select id, user, city, country, created_at, updated_at, deleted_at from squire.city where user = $1 and deleted_at is null"#,
-        //     user
-        // )
-        // .fetch_all(&pool.pool)
-        // .await?;
-        // Ok(res)
-        unimplemented!("bleh")
+        let res = sqlx::query_as!(
+            City,
+            r#"select id, "user", city, country, created_at, updated_at, deleted_at from squire.city where "user" = $1 and deleted_at is null"#,
+            user
+        )
+        .fetch_all(&pool.pool)
+        .await?;
+        Ok(res)
     }
 }
 
